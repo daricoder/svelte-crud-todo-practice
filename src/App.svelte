@@ -1,21 +1,15 @@
 <script>
-  import { Toast } from "bootstrap";
-  let toastEl;
-  let toastInstance;
-  let toastColor;
+
+  import {onMount,afterUpdate} from 'svelte';
+  import {Toast} from 'bootstrap'
   let todos = [];
   let todo = {};
+  let mostrarToast=false;
+  let toastEl;
+  // let toastInstance;
+  let toastInfo;
 
-  $: if (toastEl) {
-    if (!toastInstance) {
-      toastInstance = new Toast(toastEl);
-      console.log("instance");
-    } else {
-      toastInstance.show();
-      console.log("updte toastEl");
-      console.log(toastEl);
-    }
-  }
+  $: toastInstance = new Toast(toastEl);
 
   const addTodo = () => {
     if (todo.texto) {
@@ -23,16 +17,18 @@
       todo.id = Date.now();
       todo.estado = false;
       todos = [...todos, todo];
+      toastInfo = {texto: todo.texto,color:'bg-primary'};
       todo = {};
-      toastColor = "primary";
       toastEl = toastEl;
+      mostrarToast=true;
+
     }
   };
 
   const delTodo = (id) => {
     todos = todos.filter((todo) => todo.id != id);
-    toastColor = "danger";
-    toastinstance.show();
+    toastInfo = {texto: 'Item Eliminado',color:'bg-danger'};
+    mostrarToast=true;
   };
 
   const editTodo = (id) => {
@@ -40,13 +36,18 @@
     todo = todos.find((todo) => todo.id === id);
     todo.estado = !todo.estado;
     todos = todos;
-    toastColor = "success";
-    toastInstance.show();
-    //   console.log(todos);
-    //   todos=todos;
+    toastInfo = {texto: 'Item Editado',color:'bg-warning'};
+    mostrarToast=true;
   };
-</script>
 
+  afterUpdate(()=>{
+    if(mostrarToast){
+      toastInstance.show();
+      mostrarToast = false;
+    }
+  });
+  
+</script>
 <div class="container">
   <h1 class="display-5" my-3>CRUD</h1>
   <form on:submit|preventDefault={addTodo}>
@@ -76,23 +77,26 @@
   {/each}
 </div>
 
-<div
-  bind:this={toastEl}
-  class="toast align-items-center text-white bg-{toastColor} border-0"
-  role="alert"
-  aria-live="assertive"
-  aria-atomic="true"
->
-  <div class="d-flex">
-    <div class="toast-body">Hello, world! This is a toast message.</div>
-    <button
-      type="button"
-      class="btn-close btn-close-white me-2 m-auto"
-      data-bs-dismiss="toast"
-      aria-label="Close"
-    />
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div
+    bind:this={toastEl}
+    class="toast align-items-center text-white border-0 {toastInfo ? toastInfo.color: 'bg-sucess'}"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <div class="d-flex">
+      <div class="toast-body">{toastInfo ? toastInfo.texto: 'prueba'}</div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        data-bs-dismiss="toast"
+        aria-label="Close"
+      />
+    </div>
   </div>
 </div>
+
 
 <style>
 </style>
